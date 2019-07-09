@@ -10,7 +10,6 @@ String PORT = "8080";
 int countTrueCommand;
 int countTimeCommand;
 boolean found = false;
-double valSensor = 1;
 SoftwareSerial esp8266(RX, TX);
 
 dht DHT1;
