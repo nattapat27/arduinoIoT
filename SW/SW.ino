@@ -20,6 +20,7 @@ int countTimeCommand;
 boolean found = false;
 
 String wateringRequest;
+String moistureRequest;
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
@@ -50,39 +51,51 @@ void loop() {
   Serial.println("===================================");
   Serial.print("Value Moisture 1 : ");
   Serial.println(valueM1);
+  sendMoisture(1, valueM1);
+  delay(1000);
   Serial.print("Value Moisture 2 : ");
   Serial.println(valueM2);
+  sendMoisture(2, valueM2);
+  delay(1000);
   Serial.print("Value Moisture 3 : ");
   Serial.println(valueM3);
-  if(valueM1 < 500){
+  sendMoisture(3, valueM3);
+  delay(1000);
+  if(valueM1 > 250){
     openWater(SW1);
     delay(2000);
     closeWater(SW1);
   }
-  if(valueM2 < 500){
+  if(valueM2 > 250){
     openWater(SW2);
     delay(2000);
     closeWater(SW2);
   }
-  if(valueM3 < 500){
+  if(valueM3 > 250){
     openWater(SW3);
     delay(2000);
     closeWater(SW3);
   }
-  delay(1000);
+  delay(1800000);
 }
 
 void openWater(int sw){
   Serial.print(sw);
   Serial.println(" open");
   digitalWrite(sw, HIGH);
-  wateringRequest = "GET /watering/save/"+String(sw)+" HTTP/1.1\r\nHost: "+HOST+":"+PORT+"\r\nAccept: */*\r\n";
+  wateringRequest = "GET /watering/save/"+String(sw-4)+" HTTP/1.1\r\nHost: "+HOST+":"+PORT+"\r\nAccept: */*\r\n";
+  sendValue(wateringRequest);
 }
 
 void closeWater(int sw){
   Serial.print(sw);
   Serial.println(" close");
   digitalWrite(sw, LOW);
+}
+
+void sendMoisture(int id, int m){
+  moistureRequest = "GET /moisture/save/"+String(id)+"/"+String(m)+" HTTP/1.1\r\nHost: "+HOST+":"+PORT+"\r\nAccept: */*\r\n";
+  sendValue(moistureRequest);
 }
 void sendValue(String request){
   sendCommand("AT+CIPSTART=\"TCP\",\"" + HOST + "\"," + PORT , 16, "OK");
