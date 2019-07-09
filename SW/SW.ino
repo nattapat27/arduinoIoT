@@ -1,3 +1,6 @@
+#include <SoftwareSerial.h>
+#define RX 10
+#define TX 11
 #define SW1 5
 #define SW2 6
 #define SW3 7
@@ -7,6 +10,16 @@
 int valueM1;
 int valueM2;
 int valueM3;
+SoftwareSerial esp8266(RX, TX);
+String AP = "LoTS_AP";
+String PASS = "LoTS708AP";
+String HOST = "192.168.50.77";
+String PORT = "8080";
+int countTrueCommand;
+int countTimeCommand;
+boolean found = false;
+
+String wateringRequest;
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
@@ -19,6 +32,14 @@ void setup() {
   closeWater(SW1);
   closeWater(SW2);
   closeWater(SW3);
+  
+  esp8266.begin(115200);
+  esp8266.write("AT+UART_DEF=9600,8,1,0,0\r\n");
+  esp8266.begin(9600);
+  
+  sendCommand("AT+RST", 10, "OK");
+  sendCommand("AT+CWMODE=1", 10, "OK");
+  sendCommand("AT+CWJAP=\"" + AP + "\",\"" + PASS + "\"", 15, "OK");
 }
 
 void loop() {
@@ -55,10 +76,49 @@ void openWater(int sw){
   Serial.print(sw);
   Serial.println(" open");
   digitalWrite(sw, HIGH);
+  wateringRequest = "GET /watering/save/"+String(sw)+" HTTP/1.1\r\nHost: "+HOST+":"+PORT+"\r\nAccept: */*\r\n";
 }
 
 void closeWater(int sw){
   Serial.print(sw);
   Serial.println(" close");
   digitalWrite(sw, LOW);
+}
+void sendValue(String request){
+  sendCommand("AT+CIPSTART=\"TCP\",\"" + HOST + "\"," + PORT , 16, "OK");
+  sendCommand("AT+CIPSEND=" + String(request.length()+2), 40, ">");
+  sendCommand(request, 40, "OK");
+  sendCommand("AT+CIPCLOSE", 5, "OK");
+}
+void sendCommand(String command, int maxTime, char readReplay[]) {
+  Serial.print(countTrueCommand);
+  Serial.print(". at command => ");
+  Serial.print(command);
+  Serial.print(" ");
+  while (countTimeCommand < (maxTime * 1))
+  {
+    esp8266.println(command);//at+cipsend
+    if (esp8266.find(readReplay)) //ok
+    {
+      found = true;
+      break;
+    }
+    Serial.print(".");
+    countTimeCommand++;
+
+  }
+
+  if (found)
+  {
+    Serial.println("OYI");
+    countTrueCommand++;
+    countTimeCommand = 0;
+  } else
+  {
+    Serial.println("Fail");
+    countTrueCommand = 0;
+    countTimeCommand = 0;
+  }
+
+  found = false;
 }
