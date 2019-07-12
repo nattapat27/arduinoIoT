@@ -82,9 +82,9 @@ void loop() {
 void openWater(int sw){
   Serial.print(sw);
   Serial.println(" open");
-  digitalWrite(sw, HIGH);
   wateringRequest = "GET /watering/save/"+String(sw-4)+" HTTP/1.1\r\nHost: "+HOST+":"+PORT+"\r\nAccept: */*\r\n";
   sendValue(wateringRequest);
+  digitalWrite(sw, HIGH);
 }
 
 void closeWater(int sw){
