@@ -41,15 +41,19 @@ void loop() {
   int chk2 = DHT2.read11(DHT_L);
   int light_r = analogRead(LIGHT_R);
   int light_l = analogRead(LIGHT_L);
+  float hum_r = DHT2.humidity;
+  float hum_l = DHT1.humidity;
+  float temp_l = DHT2.temperature;
+  float temp_r = DHT1.temperature;
   Serial.print(light_l);
   Serial.print("\t\t");
   Serial.println(light_r);
-  Serial.print(DHT2.humidity);
+  Serial.print(hum_l);
   Serial.print("\t\t");
-  Serial.println(DHT1.humidity);
-  Serial.print(DHT2.temperature);
+  Serial.println(hum_r);
+  Serial.print(temp_l);
   Serial.print("\t\t");
-  Serial.println(DHT1.temperature);
+  Serial.println(temp_r);
   tempLeftRequest =  "GET /temperature/save/left/"+String(DHT2.temperature)+" HTTP/1.1\r\nHost: "+HOST+":"+PORT+"\r\nAccept: */*\r\n";
   tempRightRequest =  "GET /temperature/save/right/"+String(DHT1.temperature)+" HTTP/1.1\r\nHost: "+HOST+":"+PORT+"\r\nAccept: */*\r\n";
   sendValue(tempLeftRequest);
@@ -62,7 +66,7 @@ void loop() {
   humidityRightRequest =  "GET /humidity/save/right/"+String(DHT1.humidity)+" HTTP/1.1\r\nHost: "+HOST+":"+PORT+"\r\nAccept: */*\r\n";
   sendValue(humidityLeftRequest);
   sendValue(humidityRightRequest);
-  delay(600000);
+  delay(900000);
 }
 void sendValue(String request){
   sendCommand("AT+CIPSTART=\"TCP\",\"" + HOST + "\"," + PORT , 16, "OK");
