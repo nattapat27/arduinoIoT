@@ -61,24 +61,41 @@ void loop() {
   Serial.println(valueM3);
   sendMoisture(3, valueM3);
   delay(1000);
-  if(valueM1 > 250){
+  if(useML(1)){
     openWater(SW1);
     delay(2000);
     closeWater(SW1);
   }
-  if(valueM2 > 250){
+  if(useML(2)){
     openWater(SW2);
     delay(2000);
     closeWater(SW2);
   }
-  if(valueM3 > 250){
+  if(useML(3)){
     openWater(SW3);
     delay(2000);
     closeWater(SW3);
   }
   delay(1800000);
 }
+boolean useML(int id){
+  String request = "GET /watering/pmml/"+String(id)+" HTTP/1.1\r\nHost: " + HOST + ":" + PORT + "\r\nAccept: */*\r\n";
+  sendCommand("AT+CIPSTART=\"TCP\",\"" + HOST + "\"," + PORT , 16, "OK");
+  sendCommand("AT+CIPSEND=" + String(request.length() + 2), 40, ">");
+  esp8266.println(request);
+  char result = printResponse();
+  sendCommand("AT+CIPCLOSE", 5, "OK");
+  return result == '1';
+}
 
+char printResponse() {
+  String result = "";
+  unsigned long t = millis() + 500; // give the esp 500 mS to send the entire string
+  while ( t > millis() )
+    while ( esp8266.available())
+      result = esp8266.readString();
+  return result[result.length()-1];
+}
 void openWater(int sw){
   Serial.print(sw);
   Serial.println(" open");
